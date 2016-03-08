@@ -1359,6 +1359,7 @@ var isTouchEvent, startMoving;
 s.onTouchStart = function (e) {
     if (e.originalEvent) e = e.originalEvent;
     isTouchEvent = e.type === 'touchstart';
+    //--which 3 ?
     if (!isTouchEvent && 'which' in e && e.which === 3) return;
     if (s.params.noSwiping && findElementInEvent(e, '.' + s.params.noSwipingClass)) {
         s.allowClick = true;
@@ -1367,10 +1368,10 @@ s.onTouchStart = function (e) {
     if (s.params.swipeHandler) {
         if (!findElementInEvent(e, s.params.swipeHandler)) return;
     }
-
+    //-- record startX
     var startX = s.touches.currentX = e.type === 'touchstart' ? e.targetTouches[0].pageX : e.pageX;
     var startY = s.touches.currentY = e.type === 'touchstart' ? e.targetTouches[0].pageY : e.pageY;
-
+    
     // Do NOT start if iOS edge swipe is detected. Otherwise iOS app (UIWebView) cannot swipe-to-go-back anymore
     if(s.device.ios && s.params.iOSEdgeSwipeDetection && startX <= s.params.iOSEdgeSwipeThreshold) {
         return;
@@ -1460,13 +1461,16 @@ s.onTouchMove = function (e) {
     if (s.params.touchMoveStopPropagation && !s.params.nested) {
         e.stopPropagation();
     }
-
+    //-- start move a new movement start 
     if (!isMoved) {
         if (params.loop) {
             s.fixLoop();
         }
+        
+        //-- getTranslate
         startTranslate = s.getWrapperTranslate();
         s.setWrapperTransition(0);
+        //-- if previous animating  stop it
         if (s.animating) {
             s.wrapper.trigger('webkitTransitionEnd transitionend oTransitionEnd MSTransitionEnd msTransitionEnd');
         }
@@ -1487,8 +1491,10 @@ s.onTouchMove = function (e) {
             s.container[0].style.cursor = 'grabbing';
         }
     }
+    //-- set move flag
     isMoved = true;
 
+    //-- calc diff
     var diff = s.touches.diff = s.isHorizontal() ? s.touches.currentX - s.touches.startX : s.touches.currentY - s.touches.startY;
 
     diff = diff * s.params.touchRatio;
@@ -1518,9 +1524,12 @@ s.onTouchMove = function (e) {
     if (!s.params.allowSwipeToPrev && s.swipeDirection === 'prev' && currentTranslate > startTranslate) {
         currentTranslate = startTranslate;
     }
-
+    //-- calc new translate position
+    // --defautl  followFinger -- followFinger  good !
+    //-- not followFinger return  just record diff ??
     if (!s.params.followFinger) return;
 
+    //-- dont understande  what's mean threhold.......
     // Threshold
     if (s.params.threshold > 0) {
         if (Math.abs(diff) > s.params.threshold || allowThresholdMove) {
@@ -2044,7 +2053,7 @@ s.getTranslate = function (el, axis) {
     if (s.params.virtualTranslate) {
         return s.rtl ? -s.translate : s.translate;
     }
-
+    //-- get currentStyle
     curStyle = window.getComputedStyle(el, null);
     if (window.WebKitCSSMatrix) {
         curTransform = curStyle.transform || curStyle.webkitTransform;
